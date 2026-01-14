@@ -1,0 +1,117 @@
+# Greedy Emulators for Nuclear Two-Body Scattering
+
+<p><img align="right" width="480" src="./logos/streamline.png">
+The STREAMLINE members at Ohio U and OSU have developed an active learning approach to snapshot selection that allows for the construction of fast & accurate emulators for two-body scattering.</p>
+
+**At a glance:**   
+* Numerov method in matrix form (FOM solver)
+* Galerkin reduced order model (ROM) based on the Numerov method
+* Proper Orthogonalization (POD)
+* efficient offline-online decomposition
+* error estimates and greedy algorithm
+
+The two developed emulators are based on the Petrov-Galerking Reduced Basis Method (RBM). They implement a **greedy approach** to refine their basis iteratively in the training stage, placing snapshots in the interaction’s parameter space where the emulator’s error is estimated to be maximum.  This algorithm implements the estimation of emulator errors, which is still in its infancy in nuclear physics, and has a wide range of applications for emulating solutions of large linear systems. 
+This algorithm is contrasted with a **Proper Orthogonalization Decomposition (POD)**.
+
+This repository accompanies our manuscript.
+
+
+## Overview
+
+The repository is organized as follows:
+
+* `data`: contains the values of the low-energy couplings associated with the GT+ potentials as `yaml` files. The file names encode the chiral order, regulator cutoff, and spectral function cutoff. The values were extracted from the developer's source code. 
+* `logos`: contains the logos relevant to this work
+* `modules`: contains classes, functions, and more relevant to our emulators.
+* `plots`: contains code for plotting
+* `pdf`: contains the figures generated in the PDF format
+* `src`: contains `C++` code associated with the GT+ potentials. The codes were modified from their original version. Attempt was made to keep the modifications minimal. **Affine versions** of the potentials have been added.
+  
+The following `Jupyter` notebooks are included, providing the key results of this work:
+
+* `notes.ipynb`: contains notes useful for implementing the emulator equations.
+* `chiral.ipynb`: produces all figures pertinent to the GT+ chiral potentials.
+* `minnesota.ipynb`: produces all figures pertinent to the simple Minnesota potential.
+* `SCM_playground.ipynb`: contains our explorations of the Successive Constraint Method (SCM).
+  
+
+The LEC files in `data` can be generated via:
+```shell
+make lec_output
+./lec_output
+```
+This will also run a unittest that checks whether the function returning the affine decomposition of the chiral interactions matches the output of the original function provided by the developers (i.e., not based on the affine decomposition).
+
+## Installing and testing the Python code
+
+Install requirements by running:
+```shell
+python3 -m venv env
+source env/bin/activate
+python3 -m pip install -r requirements.txt
+# deactivate ## when the job is done
+```
+Further, `Cython`, `gcc`, and `GSL` need to be installed for the chiral interactions. On MacOS, `gcc` and `GSL` can be installed using HomeBrew:
+```shell
+brew install gcc gsl
+```
+
+In addition, [Johnson's cubature](https://github.com/stevengj/cubature) library needs to be built and installed. This can, e.g., be done via:
+
+```shell
+make install_cubature
+# make sure to add the printed line to your shell's rc file
+```
+
+The location of this installation will be `~/src/cubature`.
+
+Optional: set environment variable to plot the phase shift data obtained from the PWA '93, which are located in our Dropbox.
+```shell
+export NNPHASESHIFTS=<path to NN phase shifts>  # e.g., "~/Dropbox/uq-emulators/nn-online_phaseshifts"
+```
+
+Compile the local chiral interactions GT+ ([external C++ code](src/localGt+.cpp) provided by the developers):
+```shell
+make clean
+make CXX=g++-14 # make sure to use the GNU c++ compiler, not clang
+```
+
+The chiral interactions can also be compiled manually. This is, however, not needed.
+```shell
+g++ -fPIC -O3 -shared -c src/localGt+.cpp -o liblocalGt+.so -I/usr/local/include -I./src/
+python3 setup.py build_ext --inplace
+```
+
+Run a test calculation for the general KVP (can be skipped if only the new Galerkin emulator is of interest):
+
+```shell
+make test  # run predefined test calculation
+python3 main.py -rm 25 -p chiral -er 0.01 40. 60 -lmax 4  # with some variables specified, for example
+```
+
+For more help run:
+```shell
+python3 main.py --help
+```
+Run the following pytest command to test important components of the code:
+
+```python
+python3 -m pytest tests.py
+```
+
+## Cite this work
+
+Please use the following BibTeX entry to cite our work:
+
+```bibtex
+@article{Maldonado,
+    ...
+}
+```
+
+## Contact details
+
+Christian Drischler (<drischler@ohio.edu>)  
+Department of Physics and Astronomy   
+Ohio University  
+Athens, OH 45701, USA 

@@ -1,0 +1,51 @@
+.PHONY: all clean
+
+CXXFLAGS=-O3 -ffast-math -march=native -shared -fPIC
+CXXFLAGS_MAIN=-O3 -ffast-math -march=native 
+INCLUDES=-I./src -I/usr/local/include -I/opt/homebrew/include
+LINKS=-L/usr/local/lib -L/opt/homebrew/lib
+LIBS=-lm -lgsl -lcblas -lcubature
+
+ifdef MYLOCAL
+INCLUDES += -I${MYLOCAL}/include
+LINKS += -L${MYLOCAL}/lib
+endif
+
+# determine source, header, and object files
+SRC=src/localGt+.cpp
+HDRS=src/localGt+.h
+OBJ=$(patsubst src/%, lib%, $(SRC:.cpp=.so))
+CYTHSRC=$(wildcard cpot.p*)
+CTHOUT=cpot.cpp
+
+all : $(OBJ) $(CTHOUT)
+
+$(CTHOUT) : $(CYTHSRC) $(SRC) $(HDRS) setup.py
+	python3 setup.py build_ext --inplace
+
+lib%.so : src/%.cpp src/%.h
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(LINKS) $(LIBS) -c $< -o $@
+
+test: all
+	python3 main.py -rm 25 -p chiral -er 0.01 40. 60 -lmax 4
+
+clean :
+	@rm -f $(OBJ) *.so cpot.cpp
+
+install_cubature:
+	export MYLOCAL=${HOME}/src
+	mkdir -p ${MYLOCAL}
+	git clone git@github.com:stevengj/cubature.git ${MYLOCAL}/cubature
+	cp src/Makefile_cubature_repl ${MYLOCAL}/cubature
+	make -C ${MYLOCAL}/cubature
+	make -C ${MYLOCAL}/cubature PREFIX=${MYLOCAL}
+	echo "add the line 'export MYLOCAL=${HOME}/src' to your shell rc-file [e.g., in `~/zshrc`]."
+
+BACKUP:=backup_evc_`date +"%Y-%m-%d"`.zip
+backup :
+	@git archive --output=$(BACKUP) --prefix="backup_" HEAD
+	@rsync -a --progress $(BACKUP) $(FRIB_BACKUP_FOLDER)
+	@rm $(BACKUP)
+
+lec_output: $(SRC)
+	$(CXX) $(CXXFLAGS_MAIN) $(INCLUDES) $(LINKS) $(LIBS) -DUNITTEST=1 -o $@ $<
