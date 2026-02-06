@@ -1,6 +1,6 @@
 # Active learning emulators for nuclear two-body scattering in momentum space
 
-<p><img align="right" width="480" src="./logos/streamline.png">
+<p><img align="right" width="480" src="./streamline.png">
 The STREAMLINE members at Ohio U and OSU have developed an active-learning approach to snapshot selection that enables the construction of fast & accurate emulators for two-body scattering. 
   
 This repository accompanies our pre-print [arXiv:2512.17842](https://arxiv.org/abs/2512.17842).
