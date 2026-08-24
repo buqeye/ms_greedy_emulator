@@ -30,7 +30,6 @@ Please use the following BibTeX entry to cite our work:
 ## Contact details
 
 Abhinav Giri (<ag086822@ohio.edu>)  
-Christian Drischler (<drischler@ohio.edu>)  
 Department of Physics and Astronomy   
 Ohio University  
 Athens, OH 45701, USA 
